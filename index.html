@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catatan Keuangan Harian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #expenseModal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .nav-link.active {
+            background-color: #4A5568; /* bg-gray-700 */
+        }
+    </style>
+</head>
+
+<body class="bg-gray-200">
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <nav class="w-64 bg-gray-800 text-white flex flex-col flex-shrink-0">
+            <div class="p-4 border-b border-gray-700 flex items-center">
+                <img src="assets/logo.png" alt="Logo" class="w-10 h-10 mr-3">
+                <div>
+                    <h1 class="text-2xl font-bold">TESLAH!</h1>
+                    <p class="text-xs text-gray-400">Report.Book</p>
+                </div>
+            </div>
+            <ul class="flex-grow">
+                <li class="nav-item"><a href="#" data-view="view-dashboard" class="nav-link block p-4 hover:bg-gray-700">📊 Dashboard</a></li>
+                <li class="nav-item"><a href="#" data-view="view-daily-input" class="nav-link block p-4 hover:bg-gray-700">📝 Input Harian</a></li>
+                <li class="nav-item"><a href="#" data-view="view-weekly-report" class="nav-link block p-4 hover:bg-gray-700">📅 Laporan Mingguan</a></li>
+                <li class="nav-item"><a href="#" data-view="view-period-report" class="nav-link block p-4 hover:bg-gray-700">🗓️ Laporan Periode</a></li>
+            </ul>
+            <div class="p-4 border-t border-gray-700">
+                <a href="login.html" class="block text-center bg-gray-600 hover:bg-gray-500 rounded p-2">Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 overflow-y-auto">
+
+            <!-- View: Dashboard -->
+            <div id="view-dashboard" class="view-container">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-4 border-b pb-2">📊 Dashboard Analisis</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-lg font-semibold text-center mb-2">Komposisi Pengeluaran</h3>
+                            <canvas id="expenseChart"></canvas>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-center mb-2">Ringkasan Umum</h3>
+                            <canvas id="summaryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: Daily Input -->
+            <div id="view-daily-input" class="view-container hidden">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-slate-700">Catatan Keuangan Harian</h1>
+                    <p class="text-lg text-gray-600 mt-2">Pilih tanggal untuk melihat atau menambah laporan:</p>
+                    <input type="date" id="reportDate"
+                        class="mt-2 p-2 border rounded-md shadow-sm text-lg focus:ring-2 focus:ring-blue-500">
+                    <div class="mt-4">
+                        <button id="saveDailyBtn"
+                            class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-5 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                            Simpan Pemasukan & Update Laporan</button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+                    <h2 class="text-2xl font-semibold mb-4 border-b pb-2">📝 Pemasukan Harian</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="p-3 font-semibold">Metode</th>
+                                    <th class="p-3 font-semibold">Debit</th>
+                                    <th class="p-3 font-semibold">Kredit</th>
+                                    <th class="p-3 font-semibold">Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="p-3 font-medium">Tunai</td>
+                                    <td><input type="text" inputmode="numeric" id="incomeTunaiDebit" placeholder="Rp 0" class="income-input w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"></td>
+                                    <td><input type="text" inputmode="numeric" id="incomeTunaiKredit" placeholder="Rp 0" class="income-input w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"></td>
+                                    <td><input type="text" id="incomeTunaiNote" placeholder="Catatan..." class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"></td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="p-3 font-medium">QRIS</td>
+                                    <td><input type="text" inputmode="numeric" id="incomeQrisDebit" placeholder="Rp 0" class="income-input w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"></td>
+                                    <td><input type="text" inputmode="numeric" id="incomeQrisKredit" placeholder="Rp 0" class="income-input w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"></td>
+                                    <td><input type="text" id="incomeQrisNote" placeholder="Catatan..." class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-medium">Transfer</td>
+                                    <td><input type="text" inputmode="numeric" id="incomeTransferDebit" placeholder="Rp 0" class="income-input w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"></td>
+                                    <td><input type="text" inputmode="numeric" id="incomeTransferKredit" placeholder="Rp 0" class="income-input w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"></td>
+                                    <td><input type="text" id="incomeTransferNote" placeholder="Catatan..." class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-6 border-t pt-4">
+                        <h3 class="text-xl font-semibold mb-2">Ringkasan Pemasukan Hari Ini</h3>
+                        <div id="incomeSummaryOutput"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-2xl font-semibold">💸 Pengeluaran</h2>
+                        <button id="addExpenseBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">+ Tambah Pengeluaran</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">No. Nota</th>
+                                    <th class="p-3">Jenis Pengeluaran</th>
+                                    <th class="p-3">Metode Pembayaran</th>
+                                    <th class="p-3">Harga</th>
+                                    <th class="p-3">QTY</th>
+                                    <th class="p-3">Unit</th>
+                                    <th class="p-3">Total</th>
+                                    <th class="p-3">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenseTableBody"></tbody>
+                        </table>
+                        <p id="noExpenseMessage" class="text-center text-gray-500 py-8">Belum ada data pengeluaran.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: Weekly Report -->
+            <div id="view-weekly-report" class="view-container hidden">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-4 border-b pb-2">📊 Laporan Mingguan</h2>
+                    <div id="reportOutput" class="overflow-x-auto">
+                        <!-- Tabel laporan akan ditampilkan di sini -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: Period Report -->
+            <div id="view-period-report" class="view-container hidden">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-4 border-b pb-2">🗓️ Laporan Periode / Tutup Buku</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                        <div>
+                            <label for="startDate" class="block mb-1 font-medium">Tanggal Mulai</label>
+                            <input type="date" id="startDate" class="w-full p-2 border rounded-md">
+                        </div>
+                        <div>
+                            <label for="endDate" class="block mb-1 font-medium">Tanggal Akhir</label>
+                            <input type="date" id="endDate" class="w-full p-2 border rounded-md">
+                        </div>
+                        <div class="md:col-span-1">
+                            <button id="tutupBukuBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Buat Laporan PDF</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Expense Modal -->
+    <div id="expenseModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden opacity-0">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Formulir Pengeluaran</h3>
+                <button id="closeModalBtn" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+            </div>
+            <form id="expenseForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label for="expenseType" class="block mb-1 font-medium">Jenis Pengeluaran</label>
+                        <input type="text" id="expenseType" name="expenseType" class="w-full p-2 border rounded-md" placeholder="Contoh: Bawang Merah" required>
+                    </div>
+                    <div>
+                        <label for="expensePrice" class="block mb-1 font-medium">Harga Satuan</label>
+                        <input type="number" id="expensePrice" name="expensePrice" class="w-full p-2 border rounded-md" placeholder="Rp 0" required>
+                    </div>
+                    <div>
+                        <label for="expenseQty" class="block mb-1 font-medium">QTY</label>
+                        <input type="number" id="expenseQty" name="expenseQty" value="1" class="w-full p-2 border rounded-md" required>
+                    </div>
+                    <div>
+                        <label for="expenseUnit" class="block mb-1 font-medium">Unit (Ket)</label>
+                        <input type="text" id="expenseUnit" name="expenseUnit" class="w-full p-2 border rounded-md" placeholder="kg, pcs, grm, org, bns, ok" required>
+                    </div>
+                    <div>
+                        <label for="expensePaymentMethod" class="block mb-1 font-medium">Metode Pembayaran</label>
+                        <select id="expensePaymentMethod" name="expensePaymentMethod" class="w-full p-2 border rounded-md bg-white">
+                            <option>Tunai</option>
+                            <option>QRIS</option>
+                            <option>Transfer</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="expenseCategory" class="block mb-1 font-medium">Kategori</label>
+                        <div class="flex items-center space-x-2">
+                            <select id="expenseCategory" name="expenseCategory" class="w-full p-2 border rounded-md bg-white">
+                                <option>Bahan Baku</option>
+                                <option>Operasional</option>
+                                <option>Gaji Karyawan</option>
+                                <option>Marketing</option>
+                                <option>Lain-lain</option>
+                            </select>
+                            <button type="button" id="addCategoryBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold w-10 h-10 flex-shrink-0 rounded-md flex items-center justify-center">+</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="expenseDate" class="block mb-1 font-medium">Tanggal</label>
+                        <input type="date" id="expenseDate" name="expenseDate" class="w-full p-2 border rounded-md" required>
+                    </div>
+                    <div>
+                        <label for="expenseNota" class="block mb-1 font-medium">Nomor Nota (3-4 Angka)</label>
+                        <input type="text" id="expenseNota" name="expenseNota" class="w-full p-2 border rounded-md" placeholder="001" pattern="\d{3,4}" title="Masukkan 3 sampai 4 digit angka" required>
+                    </div>
+                </div>
+                <div class="mt-6 text-right">
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
